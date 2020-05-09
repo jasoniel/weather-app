@@ -1,13 +1,14 @@
 defmodule AppTest do
   use ExUnit.Case
 
-  @api "http://api.openweathermap.org/data/2.5/weather?q="
+  @api "http://api.weatherstack.com/current?"
+
 
   test "should return a encoded endpoint wen take a location" do
     appid = App.Weather.get_appid()
     endpoint = App.Weather.get_endpoint("Rio de Janeiro")
 
-    assert "#{@api}Rio%20de%20Janeiro&appid=#{appid}" == endpoint
+    assert "#{@api}access_key=#{appid}&query=Rio%20de%20Janeiro" == endpoint
   end
 
   test "should return Celsius when take Kelvin" do

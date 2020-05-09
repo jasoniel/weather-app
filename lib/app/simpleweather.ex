@@ -1,4 +1,4 @@
-defmodule App.Weather do
+defmodule App.SimpleWeather do
 
   def get_appid() do
     "0bcf652efd8dea74b57b7cbed241d355"
@@ -40,47 +40,21 @@ defmodule App.Weather do
   defp compute_temperature(json) do
     try do
       temp = json["current"]["temperature"]
+            #  |> kelvin_to_celsius
+      IO.puts temp
       {:ok, temp}
     rescue
       _ -> :error
     end
   end
 
-
   def start(cities) do
-    manager_pid =  spawn(__MODULE__, :manager, [[], Enum.count(cities)])
-
-    cities |> Enum.map(fn city ->
-      pid = spawn(__MODULE__, :get_temperature, [])
-      send pid, {manager_pid, city}
-    end)
+    cities
+    |> Enum.map(&create_task/1)
+    |> Enum.map(&Task.await/1)
   end
 
-  def get_temperature() do
-    receive do
-      {manager_pid, location} ->
-        send(manager_pid, {:ok, temperature_of(location)})
-        _ ->
-          IO.puts "Error"
-        # code
-    end
-    get_temperature()
-  end
-
-  def manager(cities \\ [], total) do
-    receive do
-      {:ok, temp} ->
-        results = [ temp | cities]
-        if(Enum.count(results) == total) do
-          send self(), :exit
-        end
-        manager(results, total)
-      :exit ->
-        IO.puts(cities |> Enum.sort |> Enum.join(", "))
-      _ ->
-        manager(cities, total)
-        # code
-    end
-
+  defp create_task(city) do
+    Task.async(fn -> temperature_of(city)end)
   end
 end
